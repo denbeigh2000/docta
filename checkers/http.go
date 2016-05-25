@@ -20,6 +20,8 @@ func (r RequestData) Request() (*http.Response, error) {
 	var data *bytes.Buffer
 	if strings.ToLower(r.Method) == "post" {
 		data = bytes.NewBuffer(r.Data)
+	} else {
+		data = bytes.NewBuffer([]byte(""))
 	}
 
 	req, err := http.NewRequest(r.Method, r.Endpoint, data)
@@ -54,11 +56,13 @@ func (c HTTPChecker) Check() docta.HealthState {
 
 	strBody := string(reqBody)
 	if strings.Contains(strBody, c.RedContains) {
-		return docta.HealthState{docta.Red, fmt.Sprintf("Response body contains forbidden term: %v", c.RedContains)}
+		return docta.HealthState{docta.Red, fmt.Sprintf("Response body contains forbidden string %v", c.RedContains)}
 	}
 
+	fmt.Println(strBody)
+	fmt.Println(c.YellowContains)
 	if strings.Contains(strBody, c.YellowContains) {
-		return docta.HealthState{docta.Yellow, fmt.Sprintf("Response body contains forbidden term: %v", c.YellowContains)}
+		return docta.HealthState{docta.Yellow, fmt.Sprintf("Response body contains forbidden string %v", c.YellowContains)}
 	}
 
 	return docta.HealthState{docta.Green, docta.DefaultInfo}
