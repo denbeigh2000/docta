@@ -95,3 +95,30 @@ func TestHTTPCheckerYellowText(t *testing.T) {
 		t.Errorf("Expected info %v, got %v", expectedText, state.Info)
 	}
 }
+
+func TestHTTPCheckerRedText(t *testing.T) {
+	forbiddenText := "DATREDTEXT"
+	handler := buildHandler(
+		200, fmt.Sprintf("Some other data goes before %v and also after", forbiddenText),
+	)
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	checker := HTTPChecker{"yellow", forbiddenText, RequestData{
+		Endpoint: server.URL,
+		Method:   "GET",
+		Data:     nil,
+	}}
+
+	state := checker.Check()
+
+	expectedState := docta.Red
+	if state.State != expectedState {
+		t.Errorf("Expected state %v, got %v", expectedState, state.State)
+	}
+
+	expectedText := fmt.Sprintf("Response body contains forbidden string %v", forbiddenText)
+	if state.Info != expectedText {
+		t.Errorf("Expected info %v, got %v", expectedText, state.Info)
+	}
+}
