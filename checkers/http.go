@@ -55,15 +55,17 @@ func (c HTTPChecker) Check() docta.HealthState {
 	}
 
 	strBody := string(reqBody)
-	if strings.Contains(strBody, c.RedContains) {
-		return docta.HealthState{docta.Red, fmt.Sprintf("Response body contains forbidden string %v", c.RedContains)}
+	state := CheckString(strBody, c.YellowContains, c.RedContains)
+	var info string
+
+	switch state {
+	case docta.Red:
+		info = fmt.Sprintf("Response body contains forbidden string %v", c.RedContains)
+	case docta.Yellow:
+		info = fmt.Sprintf("Response body contains forbidden string %v", c.YellowContains)
+	default:
+		info = "OK"
 	}
 
-	fmt.Println(strBody)
-	fmt.Println(c.YellowContains)
-	if strings.Contains(strBody, c.YellowContains) {
-		return docta.HealthState{docta.Yellow, fmt.Sprintf("Response body contains forbidden string %v", c.YellowContains)}
-	}
-
-	return docta.HealthState{docta.Green, docta.DefaultInfo}
+	return docta.HealthState{state, info}
 }
